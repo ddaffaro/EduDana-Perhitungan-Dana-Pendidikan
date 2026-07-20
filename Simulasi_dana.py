@@ -244,6 +244,7 @@ with flow_col4:
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 
 
+
 # ==========================================
 # HALAMAN 2: KALKULATOR SIMULASI
 # ==========================================
@@ -277,8 +278,8 @@ data_jenjang = {}
 
 with col_sd:
     st.markdown("### 🎒 Jenjang SD")
-    sd_m = st.number_input("Mulai dalam (Tahun)", min_value=1, value=1, key="SD_m")
-    sd_d = st.number_input("Lama Sekolah (Tahun)", min_value=1, value=6, key="SD_d")
+    sd_m = st.number_input("Mulai dalam (Tahun)", min_value=0, value=1, key="SD_m")
+    sd_d = st.number_input("Lama Sekolah (Tahun)", min_value=0, value=6, key="SD_d")
     sd_p = st.number_input("Uang Pangkal Hari Ini (Rp)", min_value=0, value=3000000, step=1000000, key="SD_p")
     st.caption(f"Nominal yang dimasukkan: {format_rupiah(sd_p)}")
     sd_s = st.number_input("SPP Bulanan Hari Ini (Rp)", min_value=0, value=500000, step=100000, key="SD_s")
@@ -287,8 +288,8 @@ with col_sd:
 
 with col_smp:
     st.markdown("### 🧑‍🎓 Jenjang SMP")
-    smp_m = st.number_input("Mulai dalam (Tahun)", min_value=1, value=7, key="SMP_m")
-    smp_d = st.number_input("Lama Sekolah (Tahun)", min_value=1, value=3, key="SMP_d")
+    smp_m = st.number_input("Mulai dalam (Tahun)", min_value=0, value=7, key="SMP_m")
+    smp_d = st.number_input("Lama Sekolah (Tahun)", min_value=0, value=3, key="SMP_d")
     smp_p = st.number_input("Uang Pangkal Hari Ini (Rp)", min_value=0, value=4000000, step=1000000, key="SMP_p")
     st.caption(f"Nominal yang dimasukkan: {format_rupiah(smp_p)}")
     smp_s = st.number_input("SPP Bulanan Hari Ini (Rp)", min_value=0, value=750000, step=100000, key="SMP_s")
@@ -297,8 +298,8 @@ with col_smp:
 
 with col_sma:
     st.markdown("### 🧑‍🔬 Jenjang SMA")
-    sma_m = st.number_input("Mulai dalam (Tahun)", min_value=1, value=10, key="SMA_m")
-    sma_d = st.number_input("Lama Sekolah (Tahun)", min_value=1, value=3, key="SMA_d")
+    sma_m = st.number_input("Mulai dalam (Tahun)", min_value=0, value=10, key="SMA_m")
+    sma_d = st.number_input("Lama Sekolah (Tahun)", min_value=0, value=3, key="SMA_d")
     sma_p = st.number_input("Uang Pangkal Hari Ini (Rp)", min_value=0, value=5000000, step=1000000, key="SMA_p")
     st.caption(f"Nominal yang dimasukkan: {format_rupiah(sma_p)}")
     sma_s = st.number_input("SPP Bulanan Hari Ini (Rp)", min_value=0, value=1000000, step=100000, key="SMA_s")
@@ -307,13 +308,14 @@ with col_sma:
 
 with col_kuliah:
     st.markdown("### 🎓 Jenjang Kuliah")
-    kul_m = st.number_input("Mulai dalam (Tahun)", min_value=1, value=13, key="Kuliah_m")
-    kul_d = st.number_input("Lama Studi (Tahun)", min_value=1, value=4, key="Kuliah_d")
+    kul_m = st.number_input("Mulai dalam (Tahun)", min_value=0, value=13, key="Kuliah_m")
+    kul_d = st.number_input("Lama Studi (Tahun)", min_value=0, value=4, key="Kuliah_d")
     kul_p = st.number_input("Uang Pangkal Hari Ini (Rp)", min_value=0, value=30000000, step=5000000, key="Kuliah_p")
     st.caption(f"Nominal yang dimasukkan: {format_rupiah(kul_p)}")
     kul_s = st.number_input("UKT Semester Hari Ini (Rp)", min_value=0, value=12000000, step=200000, key="Kuliah_s")
     st.caption(f"Nominal yang dimasukkan: {format_rupiah(kul_s)}")
     data_jenjang['Kuliah'] = {"mulai": kul_m, "durasi": kul_d, "pangkal": kul_p, "spp": kul_s}
+
 
 # LOGIKA PERHITUNGAN
 total_biaya_masa_depan = 0
@@ -339,7 +341,7 @@ for nama, data in data_jenjang.items():
 # Jumlah 
     subtotal_jenjang = pangkal_depan + total_spp_depan
     total_biaya_masa_depan += subtotal_jenjang
-    tahun_maksimal = max(tahun_maksimal, data['mulai'] + data['durasi'])
+    tahun_maksimal = max(tahun_maksimal, data['mulai'])
 
     daftar_hasil.append({
         "Jenjang": nama,
@@ -359,6 +361,11 @@ kekurangan_dana = max(0, total_biaya_masa_depan - nilai_tabungan_akhir)
 bunga_bulanan = (persen_investasi / 100) / 12
 jumlah_bulan = tahun_maksimal * 12
 
+# Validasi agar target menabung tidak 0 tahun 
+if tahun_maksimal <= 0:
+    st.warning("⚠️ Target durasi menabung harus lebih dari 0 tahun. Silakan periksa kembali input data jenjang pendidikan.")
+    st.stop()
+
 # Menghitung tabungan bulanan yang harus di setor 
 # PMT = FV x i / (1 + i)^n - 1 (Future Value Annuity)(tabungan Berkala)
 if bunga_bulanan > 0:
@@ -371,7 +378,7 @@ st.write("")
 m1, m2, m3 = st.columns(3)
 m1.metric("Total Dana Dibutuhkan (Future Value)", f"Rp {total_biaya_masa_depan:,.0f}")
 m2.metric("Rekomendasi Tabungan / Bulan", f"Rp {tabungan_bulanan:,.0f}")
-m3.metric("Target Durasi Menabung", f"{tahun_maksimal} Tahun")
+m3.metric("Target Durasi Menabung", f"{tahun_maksimal:,.0f} Tahun")
 
 st.write("")
 df_hasil = pd.DataFrame(daftar_hasil)
